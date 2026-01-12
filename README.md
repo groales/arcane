@@ -22,6 +22,18 @@ Sistema de gestión de contenedores Docker con interfaz web intuitiva. Permite g
 
 ⚠️ **IMPORTANTE**: Arcane necesita acceso al socket de Docker (`/var/run/docker.sock`).
 
+## Archivos de este Repositorio
+
+Este repositorio contiene archivos de ejemplo:
+- `docker-compose.yml` - Configuración base del contenedor
+- `.env.example` - Plantilla de variables de entorno
+- `docker-compose.override.traefik.yml.example` - Labels para Traefik
+- `README.md` - Esta documentación
+
+> 💡 **Tip**: Puedes copiar estos archivos manualmente o clonar el repositorio.
+
+---
+
 ## Generar Claves Seguras
 
 **Antes de cualquier despliegue**, genera las claves necesarias:
@@ -42,24 +54,51 @@ Guarda los resultados, los necesitarás en el archivo `.env`.
 
 ## Despliegue con Docker Compose
 
-### 1. Clonar Repositorio
+### 1. Crear Directorio y Archivos
 
 ```bash
-git clone https://github.com/TU_USUARIO/arcane.git
+# Crear directorio
+mkdir arcane
 cd arcane
 ```
 
-### 2. Configurar Variables
+### 2. Crear docker-compose.yml
 
-```bash
-# Copiar ejemplo de entorno
-cp .env.example .env
+Crea el archivo `docker-compose.yml`:
 
-# Editar variables
-nano .env
+```yaml
+services:
+  arcane:
+    image: ghcr.io/getarcaneapp/arcane:latest
+    container_name: arcane
+    restart: unless-stopped
+    ports:
+      - 3552:3552
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - data:/app/data
+    environment:
+      - APP_URL=${APP_URL}
+      - PUID=1000
+      - PGID=1000
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - JWT_SECRET=${JWT_SECRET}
+      - LOG_LEVEL=info
+      - LOG_JSON=false
+      - DATABASE_URL=file:data/arcane.db?_pragma=journal_mode(WAL)&_pragma=busy_timeout(2500)&_txlock=immediate
+
+volumes:
+  data:
+
+networks:
+  default:
+    external: true
+    name: proxy
 ```
 
-Edita el archivo `.env` con tus valores:
+### 3. Configurar Variables de Entorno
+
+Crea el archivo `.env`:
 
 ```env
 # Dominio
@@ -72,14 +111,22 @@ ENCRYPTION_KEY=tu_encryption_key_generada
 JWT_SECRET=tu_jwt_secret_generado
 ```
 
-### 3. Seleccionar Modo de Red
+### 4. (Opcional) Configurar Traefik
 
-**Para Traefik:**
-```bash
-cp docker-compose.override.traefik.yml.example docker-compose.override.traefik.yml
+Si usas Traefik, crea `docker-compose.override.yml`:
+
+```yaml
+services:
+  arcane:
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.arcane.rule=Host(`${DOMAIN_HOST}`)
+      - traefik.http.routers.arcane.entrypoints=websecure
+      - traefik.http.routers.arcane.tls.certresolver=letsencrypt
+      - traefik.http.services.arcane.loadbalancer.server.port=3552
 ```
 
-### 4. Desplegar
+### 5. Desplegar
 
 ```bash
 # Crear red proxy si no existe
@@ -90,6 +137,29 @@ docker compose up -d
 
 # Ver logs
 docker compose logs -f arcane
+```
+
+---
+
+## Método Alternativo: Clonar desde Git
+
+Si prefieres usar Git para mantener la configuración actualizada:
+
+```bash
+# Clonar repositorio
+git clone https://git.ictiberia.com/groales/arcane.git
+cd arcane
+
+# Copiar y editar variables
+cp .env.example .env
+nano .env
+
+# Para Traefik
+cp docker-compose.override.traefik.yml.example docker-compose.override.yml
+
+# Desplegar
+docker network create proxy
+docker compose up -d
 ```
 
 ---
