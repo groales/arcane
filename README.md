@@ -76,7 +76,7 @@ services:
       - 3552:3552
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - data:/app/data
+      - arcane_data:/app/data
     environment:
       - APP_URL=${APP_URL}
       - PUID=1000
@@ -88,7 +88,8 @@ services:
       - DATABASE_URL=file:data/arcane.db?_pragma=journal_mode(WAL)&_pragma=busy_timeout(2500)&_txlock=immediate
 
 volumes:
-  data:
+  arcane_data:
+    name: arcane_data
 
 # añadir estas líneas al final del archivo para proxy inverso 
 networks:
@@ -211,8 +212,8 @@ docker compose down -v
 ## Estructura de Volúmenes
 
 ```
-./data/                    # Directorio de datos persistentes
-└── arcane.db             # Base de datos SQLite
+Volumen Docker: arcane_data
+└── /app/data/arcane.db   # Base de datos SQLite dentro del contenedor
 ```
 
 ---
