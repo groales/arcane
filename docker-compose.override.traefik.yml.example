@@ -1,8 +1,0 @@
-services:
-  arcane:
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.arcane.rule=Host(`${DOMAIN_HOST}`)
-      - traefik.http.routers.arcane.entrypoints=websecure
-      - traefik.http.routers.arcane.tls.certresolver=letsencrypt
-      - traefik.http.services.arcane.loadbalancer.server.port=3552

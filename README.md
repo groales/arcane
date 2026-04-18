@@ -16,9 +16,9 @@ Sistema de gestión de contenedores Docker con interfaz web intuitiva. Permite g
 
 - Docker Engine instalado
 - Docker Compose instalado
-- **Para Traefik o NPM**: Red Docker `proxy` creada
-- **Dominio configurado**: Para acceso HTTPS
-- **Claves generadas**: ENCRYPTION_KEY y JWT_SECRET
+- URL de acceso definida para la aplicación
+- Claves generadas: ENCRYPTION_KEY y JWT_SECRET
+- Red Docker externa `proxy` creada si vas a usar un proxy inverso genérico
 
 ⚠️ **IMPORTANTE**: Arcane necesita acceso al socket de Docker (`/var/run/docker.sock`).
 
@@ -27,7 +27,6 @@ Sistema de gestión de contenedores Docker con interfaz web intuitiva. Permite g
 Este repositorio contiene archivos de ejemplo:
 - `docker-compose.yml` - Configuración base del contenedor
 - `.env.example` - Plantilla de variables de entorno
-- `docker-compose.override.traefik.yml.example` - Labels para Traefik
 - `README.md` - Esta documentación
 
 > 💡 **Tip**: Puedes copiar estos archivos manualmente o clonar el repositorio.
@@ -91,7 +90,7 @@ volumes:
   arcane_data:
     name: arcane_data
 
-# añadir estas líneas al final del archivo para proxy inverso 
+# Red externa opcional para proxy inverso genérico
 networks:
   default:
     external: true
@@ -103,9 +102,10 @@ networks:
 Crea el archivo `.env`:
 
 ```env
-# Dominio
-DOMAIN_HOST=arcane.dominio.com
-APP_URL=https://arcane.dominio.com
+# Usa la URL final con la que accederás a la aplicación
+# Ejemplo local:  http://localhost:3552
+# Ejemplo con proxy: https://arcane.midominio.com
+APP_URL=https://arcane.midominio.com
 
 # Claves de Seguridad (GENERAR NUEVAS)
 # Generar con: openssl rand -hex 32
@@ -113,25 +113,10 @@ ENCRYPTION_KEY=tu_encryption_key_generada
 JWT_SECRET=tu_jwt_secret_generado
 ```
 
-### 4. (Opcional) Configurar Traefik
-
-Si usas Traefik, crea `docker-compose.override.yml`:
-
-```yaml
-services:
-  arcane:
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.arcane.rule=Host(`${DOMAIN_HOST}`)
-      - traefik.http.routers.arcane.entrypoints=websecure
-      - traefik.http.routers.arcane.tls.certresolver=letsencrypt
-      - traefik.http.services.arcane.loadbalancer.server.port=3552
-```
-
-### 5. Desplegar
+### 4. Desplegar
 
 ```bash
-# Crear red proxy si no existe
+# Crear la red externa si vas a usar proxy inverso
 docker network create proxy
 
 # Iniciar servicios
@@ -149,18 +134,17 @@ Si prefieres usar Git para mantener la configuración actualizada:
 
 ```bash
 # Clonar repositorio
-git clone https://git.ictiberia.com/groales/arcane.git
+git clone https://github.com/groales/arcane.git
 cd arcane
 
 # Copiar y editar variables
 cp .env.example .env
 nano .env
 
-# Para Traefik
-cp docker-compose.override.traefik.yml.example docker-compose.override.yml
+# Crear la red externa si vas a usar proxy inverso
+docker network create proxy
 
 # Desplegar
-docker network create proxy
 docker compose up -d
 ```
 
@@ -168,10 +152,13 @@ docker compose up -d
 
 ## Acceso Inicial
 
-Una vez desplegado, accede a Arcane:
+Una vez desplegado, accede a Arcane usando la URL que hayas definido en `APP_URL`.
+Puede ser una URL local o una publicada detrás de un proxy inverso genérico.
 
-```
-https://arcane.dominio.com
+```text
+http://localhost:3552
+# o
+https://arcane.midominio.com
 ```
 
 ### Primera Configuración
@@ -224,7 +211,6 @@ Volumen Docker: arcane_data
 
 | Variable | Descripción | Valor |
 |----------|-------------|-------|
-| `DOMAIN_HOST` | Dominio para Traefik | Configurar en `.env` |
 | `APP_URL` | URL de acceso a Arcane | Configurar en `.env` |
 | `ENCRYPTION_KEY` | Clave de cifrado (hex 64) | Configurar en `.env` |
 | `JWT_SECRET` | Secreto JWT (hex 64) | Configurar en `.env` |
@@ -303,7 +289,7 @@ docker compose logs -f arcane
 ### Recomendaciones
 
 1. **Cambiar claves por defecto**: Genera claves únicas con `openssl`
-2. **Usar HTTPS**: Configura Traefik/NPM con SSL
+2. **Usar HTTPS si publicas el servicio**: Protege el acceso remoto
 3. **Restringir acceso**: Usar firewall o VPN para acceso remoto
 4. **Backups regulares**: Respalda `./data/` periódicamente
 5. **Actualizar regularmente**: Mantén Arcane actualizado
@@ -377,22 +363,6 @@ docker compose logs -f arcane
 
 ---
 
-## Wiki Completa
-
-Para documentación detallada, visita la [Wiki de Arcane](../arcane.wiki).
-
-### Contenidos de la Wiki
-
-- **[Home](../arcane.wiki/Home.md)** - Inicio y características
-- **[Traefik](../arcane.wiki/Traefik.md)** - Configuración con Traefik
-- **[NPM](../arcane.wiki/NPM.md)** - Configuración con Nginx Proxy Manager
-- **[Configuración Inicial](../arcane.wiki/Configuración-Inicial.md)** - Primer acceso
-- **[Personalización](../arcane.wiki/Personalización.md)** - Configuración avanzada
-- **[Backup y Restauración](../arcane.wiki/Backup-y-Restauración.md)** - Protección de datos
-- **[Actualización](../arcane.wiki/Actualización.md)** - Mantener actualizado
-- **[Solución de Problemas](../arcane.wiki/Solución-de-Problemas.md)** - Diagnóstico
-
----
 
 ## Licencia
 
