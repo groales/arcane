@@ -39,11 +39,9 @@ Este repositorio contiene archivos de ejemplo:
 **Antes de cualquier despliegue**, genera las claves necesarias:
 
 ```bash
-# ENCRYPTION_KEY (64 caracteres hexadecimales)
-openssl rand -hex 32
-
-# JWT_SECRET (64 caracteres hexadecimales)
-openssl rand -hex 32
+# You can use OpenSSL in your terminal to generate the secrets
+echo "      - ENCRYPTION_KEY=$(openssl rand -hex 32)"
+echo "      - JWT_SECRET=$(openssl rand -hex 32)"
 ```
 
 Guarda los resultados, los necesitarás en el archivo `.env`.
@@ -110,11 +108,7 @@ Crea el archivo `.env`:
 # Ejemplo con proxy: https://arcane.midominio.com
 APP_URL=https://arcane.midominio.com
 
-# Ruta que has montado en el contenedor para tus proyectos
-PROJECTS_DIRECTORY=/host/path/to/projects
-
 # Claves de Seguridad (GENERAR NUEVAS)
-# Generar con: openssl rand -hex 32
 ENCRYPTION_KEY=tu_encryption_key_generada
 JWT_SECRET=tu_jwt_secret_generado
 ```
@@ -240,49 +234,9 @@ Bind mount configurable:
 | `LOG_JSON` | Logs en formato JSON | `false` (hardcoded) |
 | `DATABASE_URL` | URL de conexión SQLite | `file:data/arcane.db...` (hardcoded) |
 
-### Cambiar Puerto
-
-Si necesitas cambiar el puerto (por defecto 3552):
-
-```yaml
-ports:
-  - 8080:3552  # Puerto_host:Puerto_contenedor
-```
-
-### Personalizar Base de Datos
-
-Puedes modificar los parámetros de SQLite en `DATABASE_URL`:
-
-```env
-DATABASE_URL=file:data/arcane.db?_pragma=journal_mode(WAL)&_pragma=busy_timeout(5000)&_txlock=immediate
-```
-
----
 
 ## Solución de Problemas
 
-### Error: Cannot connect to Docker socket
-
-```bash
-# Verificar permisos del socket
-ls -l /var/run/docker.sock
-
-# Si es necesario, añadir usuario al grupo docker
-sudo usermod -aG docker $USER
-```
-
-### Base de Datos Corrupta
-
-```bash
-# Detener contenedor
-docker compose down
-
-# Hacer backup de la base de datos
-cp data/arcane.db data/arcane.db.backup
-
-# Reiniciar
-docker compose up -d
-```
 
 ### Ver Logs Detallados
 
