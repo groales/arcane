@@ -8,8 +8,10 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - arcane_data:/app/data
+      - /host/path/to/projects:/host/path/to/projects # Cambia esta ruta por la ubicación de tus proyectos
     environment:
       - APP_URL=${APP_URL}
+      - PROJECTS_DIRECTORY=/host/path/to/projects # Asegúrate de que esta ruta coincida con la ruta del volumen 
       - PUID=1000
       - PGID=1000
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
@@ -21,3 +23,9 @@ services:
 volumes:
   arcane_data:
     name: arcane_data
+
+# añadir estas líneas para proxy inverso 
+networks:
+  default:
+    external: true
+    name: proxy

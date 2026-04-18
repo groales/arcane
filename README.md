@@ -18,6 +18,7 @@ Sistema de gestión de contenedores Docker con interfaz web intuitiva. Permite g
 - Docker Compose instalado
 - URL de acceso definida para la aplicación
 - Claves generadas: ENCRYPTION_KEY y JWT_SECRET
+- Ruta local de proyectos que quieras exponer a Arcane
 - Red Docker externa `proxy` creada si vas a usar un proxy inverso genérico
 
 ⚠️ **IMPORTANTE**: Arcane necesita acceso al socket de Docker (`/var/run/docker.sock`).
@@ -76,8 +77,10 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - arcane_data:/app/data
+      - /host/path/to/projects:/host/path/to/projects
     environment:
       - APP_URL=${APP_URL}
+      - PROJECTS_DIRECTORY=/host/path/to/projects
       - PUID=1000
       - PGID=1000
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
@@ -107,13 +110,26 @@ Crea el archivo `.env`:
 # Ejemplo con proxy: https://arcane.midominio.com
 APP_URL=https://arcane.midominio.com
 
+# Ruta que has montado en el contenedor para tus proyectos
+PROJECTS_DIRECTORY=/host/path/to/projects
+
 # Claves de Seguridad (GENERAR NUEVAS)
 # Generar con: openssl rand -hex 32
 ENCRYPTION_KEY=tu_encryption_key_generada
 JWT_SECRET=tu_jwt_secret_generado
 ```
 
-### 4. Desplegar
+### 4. Ajustar la Ruta de Proyectos
+
+Antes de desplegar, cambia esta ruta en `docker-compose.yml` por la ubicación real de tus proyectos:
+
+```yaml
+- /host/path/to/projects:/host/path/to/projects
+```
+
+Y asegúrate de que `PROJECTS_DIRECTORY` tenga exactamente esa misma ruta.
+
+### 5. Desplegar
 
 ```bash
 # Crear la red externa si vas a usar proxy inverso
@@ -201,6 +217,9 @@ docker compose down -v
 ```
 Volumen Docker: arcane_data
 └── /app/data/arcane.db   # Base de datos SQLite dentro del contenedor
+
+Bind mount configurable:
+└── /host/path/to/projects # Directorio de proyectos visible para Arcane
 ```
 
 ---
@@ -212,6 +231,7 @@ Volumen Docker: arcane_data
 | Variable | Descripción | Valor |
 |----------|-------------|-------|
 | `APP_URL` | URL de acceso a Arcane | Configurar en `.env` |
+| `PROJECTS_DIRECTORY` | Ruta interna donde Arcane verá tus proyectos | Configurar en `.env` |
 | `ENCRYPTION_KEY` | Clave de cifrado (hex 64) | Configurar en `.env` |
 | `JWT_SECRET` | Secreto JWT (hex 64) | Configurar en `.env` |
 | `PUID` | User ID para permisos | `1000` (hardcoded) |
