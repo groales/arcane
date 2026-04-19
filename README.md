@@ -26,7 +26,7 @@ Sistema de gestión de contenedores Docker con interfaz web intuitiva. Permite g
 ## Archivos de este Repositorio
 
 Este repositorio contiene archivos de ejemplo:
-- `docker-compose.yml` - Configuración base del contenedor
+- `compose.yaml` - Configuración base del contenedor
 - `.env.example` - Plantilla de variables de entorno
 - `README.md` - Esta documentación
 
@@ -60,9 +60,9 @@ mkdir arcane
 cd arcane
 ```
 
-### 2. Crear docker-compose.yml
+### 2. Crear compose.yaml
 
-Crea el archivo `docker-compose.yml`:
+Crea el archivo `compose.yaml`:
 
 ```yaml
 services:
@@ -115,7 +115,7 @@ JWT_SECRET=tu_jwt_secret_generado
 
 ### 4. Ajustar la Ruta de Proyectos
 
-Antes de desplegar, cambia esta ruta en `docker-compose.yml` por la ubicación real de tus proyectos:
+Antes de desplegar, cambia esta ruta en `compose.yaml` por la ubicación real de tus proyectos:
 
 ```yaml
 - /host/path/to/projects:/host/path/to/projects
@@ -240,7 +240,7 @@ Bind mount configurable:
 
 ### Ver Logs Detallados
 
-Para cambiar el nivel de logs, edita `docker-compose.yml`:
+Para cambiar el nivel de logs, edita `compose.yaml`:
 
 ```yaml
 environment:
