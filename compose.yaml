@@ -16,9 +16,6 @@ services:
       - PGID=1000
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       - JWT_SECRET=${JWT_SECRET}
-      - LOG_LEVEL=info
-      - LOG_JSON=false
-      - DATABASE_URL=file:data/arcane.db?_pragma=journal_mode(WAL)&_pragma=busy_timeout(2500)&_txlock=immediate
 
 volumes:
   arcane_data:

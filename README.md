@@ -2,6 +2,8 @@
 
 Sistema de gestión de contenedores Docker con interfaz web intuitiva. Permite gestionar, monitorear y controlar contenedores Docker de forma visual y sencilla.
 
+Referencia oficial de instalación: https://getarcane.app/docs/setup/installation
+
 ## Características
 
 - 🐳 **Gestión de Contenedores**: Control completo de tus contenedores
@@ -19,7 +21,7 @@ Sistema de gestión de contenedores Docker con interfaz web intuitiva. Permite g
 - URL de acceso definida para la aplicación
 - Claves generadas: ENCRYPTION_KEY y JWT_SECRET
 - Ruta local de proyectos que quieras exponer a Arcane
-- Red Docker externa `proxy` creada si vas a usar un proxy inverso genérico
+- Red Docker externa `proxy` creada, ya que el `compose.yaml` de este repositorio está preparado para conectarse a ella
 
 ⚠️ **IMPORTANTE**: Arcane necesita acceso al socket de Docker (`/var/run/docker.sock`).
 
@@ -83,9 +85,6 @@ services:
       - PGID=1000
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       - JWT_SECRET=${JWT_SECRET}
-      - LOG_LEVEL=info
-      - LOG_JSON=false
-      - DATABASE_URL=file:data/arcane.db?_pragma=journal_mode(WAL)&_pragma=busy_timeout(2500)&_txlock=immediate
 
 volumes:
   arcane_data:
@@ -100,7 +99,13 @@ networks:
 
 ### 3. Configurar Variables de Entorno
 
-Crea el archivo `.env`:
+Copia `.env.example` a `.env` y ajústalo a tu entorno:
+
+```bash
+cp .env.example .env
+```
+
+Contenido esperado de `.env`:
 
 ```env
 # Usa la URL final con la que accederás a la aplicación
@@ -121,12 +126,12 @@ Antes de desplegar, cambia esta ruta en `compose.yaml` por la ubicación real de
 - /host/path/to/projects:/host/path/to/projects
 ```
 
-Y asegúrate de que `PROJECTS_DIRECTORY` tenga exactamente esa misma ruta.
+Y asegúrate de que la variable `PROJECTS_DIRECTORY` en `compose.yaml` tenga exactamente esa misma ruta.
 
 ### 5. Desplegar
 
 ```bash
-# Crear la red externa si vas a usar proxy inverso
+# Crear la red externa requerida por este compose
 docker network create proxy
 
 # Iniciar servicios
@@ -151,12 +156,14 @@ cd arcane
 cp .env.example .env
 nano .env
 
-# Crear la red externa si vas a usar proxy inverso
+# Crear la red externa requerida por este compose
 docker network create proxy
 
 # Desplegar
 docker compose up -d
 ```
+
+Si no quieres usar la red `proxy`, comenta o elimina el bloque `networks` del `compose.yaml` antes de arrancar el servicio.
 
 ---
 
@@ -225,14 +232,11 @@ Bind mount configurable:
 | Variable | Descripción | Valor |
 |----------|-------------|-------|
 | `APP_URL` | URL de acceso a Arcane | Configurar en `.env` |
-| `PROJECTS_DIRECTORY` | Ruta interna donde Arcane verá tus proyectos | Configurar en `.env` |
+| `PROJECTS_DIRECTORY` | Ruta interna donde Arcane verá tus proyectos | Configurar en `compose.yaml` |
 | `ENCRYPTION_KEY` | Clave de cifrado (hex 64) | Configurar en `.env` |
 | `JWT_SECRET` | Secreto JWT (hex 64) | Configurar en `.env` |
 | `PUID` | User ID para permisos | `1000` (hardcoded) |
 | `PGID` | Group ID para permisos | `1000` (hardcoded) |
-| `LOG_LEVEL` | Nivel de log | `info` (hardcoded) |
-| `LOG_JSON` | Logs en formato JSON | `false` (hardcoded) |
-| `DATABASE_URL` | URL de conexión SQLite | `file:data/arcane.db...` (hardcoded) |
 
 
 ## Solución de Problemas
@@ -244,6 +248,7 @@ Para cambiar el nivel de logs, edita `compose.yaml`:
 
 ```yaml
 environment:
+  - PROJECTS_DIRECTORY=/host/path/to/projects
   - LOG_LEVEL=debug  # Cambiar de info a debug
 ```
 
@@ -265,7 +270,7 @@ docker compose logs -f arcane
 1. **Cambiar claves por defecto**: Genera claves únicas con `openssl`
 2. **Usar HTTPS si publicas el servicio**: Protege el acceso remoto
 3. **Restringir acceso**: Usar firewall o VPN para acceso remoto
-4. **Backups regulares**: Respalda `./data/` periódicamente
+4. **Backups regulares**: Respalda periódicamente el volumen `arcane_data`
 5. **Actualizar regularmente**: Mantén Arcane actualizado
 
 ### Acceso al Socket de Docker
@@ -286,8 +291,9 @@ Arcane necesita acceso al socket de Docker. Esto le da control total sobre Docke
 # Detener contenedor
 docker compose down
 
-# Backup de datos
-tar -czf arcane-backup-$(date +%Y%m%d).tar.gz data/
+# Backup del volumen de datos
+docker run --rm -v arcane_data:/source -v $(pwd):/backup alpine \
+  tar -czf /backup/arcane-backup-$(date +%Y%m%d).tar.gz -C /source .
 
 # Reiniciar
 docker compose up -d
@@ -299,8 +305,9 @@ docker compose up -d
 # Detener contenedor
 docker compose down
 
-# Restaurar datos
-tar -xzf arcane-backup-YYYYMMDD.tar.gz
+# Restaurar datos en el volumen
+docker run --rm -v arcane_data:/target -v $(pwd):/backup alpine \
+  sh -c "rm -rf /target/* /target/.[!.]* /target/..?* 2>/dev/null; tar -xzf /backup/arcane-backup-YYYYMMDD.tar.gz -C /target"
 
 # Reiniciar
 docker compose up -d
@@ -315,7 +322,8 @@ docker compose up -d
 docker compose down
 
 # Hacer backup
-tar -czf arcane-backup-$(date +%Y%m%d).tar.gz data/
+docker run --rm -v arcane_data:/source -v $(pwd):/backup alpine \
+  tar -czf /backup/arcane-backup-$(date +%Y%m%d).tar.gz -C /source .
 
 # Actualizar imagen
 docker compose pull
@@ -331,7 +339,9 @@ docker compose logs -f arcane
 
 ## Recursos
 
-- **Documentación Oficial**: [Arcane GitHub](https://github.com/getarcaneapp/arcane)
+- **Instalación Oficial**: [Arcane Installation Guide](https://getarcane.app/docs/setup/installation)
+- **Documentación Oficial**: [Arcane Docs](https://getarcane.app/docs)
+- **Repositorio Oficial**: [Arcane GitHub](https://github.com/getarcaneapp/arcane)
 - **Docker Hub**: [ghcr.io/getarcaneapp/arcane](https://github.com/getarcaneapp/arcane/pkgs/container/arcane)
 - **Issues**: [GitHub Issues](https://github.com/getarcaneapp/arcane/issues)
 
