@@ -20,7 +20,7 @@ Referencia oficial de instalación: https://getarcane.app/docs/setup/installatio
 - Docker Compose instalado
 - URL de acceso definida para la aplicación
 - Claves generadas: ENCRYPTION_KEY y JWT_SECRET
-- Ruta local de proyectos que quieras exponer a Arcane
+- Ruta local de proyectos que quieras exponer a Arcane (variable `PROJECTS_DIRECTORY` en `.env`)
 - Red Docker externa `proxy` creada, ya que el `compose.yaml` de este repositorio está preparado para conectarse a ella
 
 ⚠️ **IMPORTANTE**: Arcane necesita acceso al socket de Docker (`/var/run/docker.sock`).
@@ -78,10 +78,10 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./data:/app/data
       - ./backups:/backups # Cambia esta ruta por la ubicación de tus backups de volúmenes
-      - /host/path/to/projects:/host/path/to/projects
+      - ${PROJECTS_DIRECTORY}:${PROJECTS_DIRECTORY} # Ruta del host donde están los proyectos
     environment:
       - APP_URL=${APP_URL}
-      - PROJECTS_DIRECTORY=/host/path/to/projects
+      - PROJECTS_DIRECTORY=${PROJECTS_DIRECTORY}
       - PUID=1000
       - PGID=1000
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
@@ -110,6 +110,9 @@ Contenido esperado de `.env`:
 # Ejemplo con proxy: https://arcane.midominio.com
 APP_URL=https://arcane.midominio.com
 
+# Ruta del host donde están los proyectos
+PROJECTS_DIRECTORY=/ruta/a/tus/proyectos
+
 # Claves de Seguridad (GENERAR NUEVAS)
 ENCRYPTION_KEY=tu_encryption_key_generada
 JWT_SECRET=tu_jwt_secret_generado
@@ -117,13 +120,13 @@ JWT_SECRET=tu_jwt_secret_generado
 
 ### 4. Ajustar la Ruta de Proyectos
 
-Antes de desplegar, cambia esta ruta en `compose.yaml` por la ubicación real de tus proyectos:
+En el archivo `.env`, define la ruta real de tus proyectos en el host:
 
-```yaml
-- /host/path/to/projects:/host/path/to/projects
+```env
+PROJECTS_DIRECTORY=/ruta/real/a/tus/proyectos
 ```
 
-Y asegúrate de que la variable `PROJECTS_DIRECTORY` en `compose.yaml` tenga exactamente esa misma ruta.
+Esta variable se usa tanto para el bind mount como para la variable de entorno `PROJECTS_DIRECTORY` dentro del contenedor, por lo que solo necesitas definirla una vez.
 
 ### 5. Desplegar
 
@@ -221,7 +224,7 @@ Bind mount de backups:
                          # Cambia esta ruta por la ubicación real de tus backups
 
 Bind mount configurable:
-└── /host/path/to/projects # Directorio de proyectos visible para Arcane
+└── ${PROJECTS_DIRECTORY}  # Directorio de proyectos visible para Arcane (definido en .env)
 ```
 
 ---
@@ -233,7 +236,7 @@ Bind mount configurable:
 | Variable | Descripción | Valor |
 |----------|-------------|-------|
 | `APP_URL` | URL de acceso a Arcane | Configurar en `.env` |
-| `PROJECTS_DIRECTORY` | Ruta interna donde Arcane verá tus proyectos | Configurar en `compose.yaml` |
+| `PROJECTS_DIRECTORY` | Ruta del host donde están los proyectos | Configurar en `.env` |
 | `ENCRYPTION_KEY` | Clave de cifrado (hex 64) | Configurar en `.env` |
 | `JWT_SECRET` | Secreto JWT (hex 64) | Configurar en `.env` |
 | `PUID` | User ID para permisos | `1000` (hardcoded) |
@@ -249,7 +252,7 @@ Para cambiar el nivel de logs, edita `compose.yaml`:
 
 ```yaml
 environment:
-  - PROJECTS_DIRECTORY=/host/path/to/projects
+  - PROJECTS_DIRECTORY=${PROJECTS_DIRECTORY}
   - LOG_LEVEL=debug  # Cambiar de info a debug
 ```
 
