@@ -18,10 +18,6 @@ services:
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       - JWT_SECRET=${JWT_SECRET}
 
-volumes:
-  arcane_data:
-    name: arcane_data
-
 # añadir estas líneas para proxy inverso 
 networks:
   default:

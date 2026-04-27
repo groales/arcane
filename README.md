@@ -87,10 +87,6 @@ services:
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       - JWT_SECRET=${JWT_SECRET}
 
-volumes:
-  arcane_data:
-    name: arcane_data
-
 # Red externa opcional para proxy inverso genérico
 networks:
   default:
