@@ -76,7 +76,8 @@ services:
       - 3552:3552
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - arcane_data:/app/data
+      - ./data:/app/data
+      - ./backups:/backups # Cambia esta ruta por la ubicación de tus backups de volúmenes
       - /host/path/to/projects:/host/path/to/projects
     environment:
       - APP_URL=${APP_URL}
@@ -216,8 +217,12 @@ docker compose down -v
 ## Estructura de Volúmenes
 
 ```
-Volumen Docker: arcane_data
-└── /app/data/arcane.db   # Base de datos SQLite dentro del contenedor
+Bind mount de datos:
+└── ./data/              # Directorio de datos de Arcane (base de datos SQLite, etc.)
+
+Bind mount de backups:
+└── ./backups/           # Directorio donde se almacenan los backups de volúmenes
+                         # Cambia esta ruta por la ubicación real de tus backups
 
 Bind mount configurable:
 └── /host/path/to/projects # Directorio de proyectos visible para Arcane
@@ -270,7 +275,7 @@ docker compose logs -f arcane
 1. **Cambiar claves por defecto**: Genera claves únicas con `openssl`
 2. **Usar HTTPS si publicas el servicio**: Protege el acceso remoto
 3. **Restringir acceso**: Usar firewall o VPN para acceso remoto
-4. **Backups regulares**: Respalda periódicamente el volumen `arcane_data`
+4. **Backups regulares**: Respalda periódicamente el directorio `./data`
 5. **Actualizar regularmente**: Mantén Arcane actualizado
 
 ### Acceso al Socket de Docker
@@ -291,9 +296,8 @@ Arcane necesita acceso al socket de Docker. Esto le da control total sobre Docke
 # Detener contenedor
 docker compose down
 
-# Backup del volumen de datos
-docker run --rm -v arcane_data:/source -v $(pwd):/backup alpine \
-  tar -czf /backup/arcane-backup-$(date +%Y%m%d).tar.gz -C /source .
+# Backup del directorio de datos
+tar -czf arcane-backup-$(date +%Y%m%d).tar.gz ./data
 
 # Reiniciar
 docker compose up -d
@@ -305,9 +309,9 @@ docker compose up -d
 # Detener contenedor
 docker compose down
 
-# Restaurar datos en el volumen
-docker run --rm -v arcane_data:/target -v $(pwd):/backup alpine \
-  sh -c "rm -rf /target/* /target/.[!.]* /target/..?* 2>/dev/null; tar -xzf /backup/arcane-backup-YYYYMMDD.tar.gz -C /target"
+# Restaurar directorio de datos
+rm -rf ./data
+tar -xzf arcane-backup-YYYYMMDD.tar.gz
 
 # Reiniciar
 docker compose up -d
@@ -322,8 +326,7 @@ docker compose up -d
 docker compose down
 
 # Hacer backup
-docker run --rm -v arcane_data:/source -v $(pwd):/backup alpine \
-  tar -czf /backup/arcane-backup-$(date +%Y%m%d).tar.gz -C /source .
+tar -czf arcane-backup-$(date +%Y%m%d).tar.gz ./data
 
 # Actualizar imagen
 docker compose pull
