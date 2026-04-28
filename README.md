@@ -88,7 +88,7 @@ services:
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
       - JWT_SECRET=${JWT_SECRET}
 
-# Red externa opcional para proxy inverso genérico
+# añadir estas líneas para proxy inverso 
 networks:
   default:
     external: true
