@@ -2,7 +2,6 @@ services:
   arcane:
     image: ghcr.io/getarcaneapp/arcane:latest
     container_name: arcane
-    restart: unless-stopped
     #Puertos expuestos para acceso directo (opcional, se recomienda usar proxy inverso)  
     ports:
      - 3552:3552
@@ -17,7 +16,8 @@ services:
       - PUID=1000
       - PGID=1000
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
-      - JWT_SECRET=${JWT_SECRET}
+    cgroup: host
+    restart: unless-stopped
 
 # añadir estas líneas para proxy inverso 
 networks:
