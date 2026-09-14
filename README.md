@@ -43,7 +43,6 @@ Este repositorio contiene archivos de ejemplo:
 ```bash
 # You can use OpenSSL in your terminal to generate the secrets
 echo "      - ENCRYPTION_KEY=$(openssl rand -hex 32)"
-echo "      - JWT_SECRET=$(openssl rand -hex 32)"
 ```
 
 Guarda los resultados, los necesitarás en el archivo `.env`.
@@ -86,7 +85,6 @@ services:
       - PUID=1000
       - PGID=1000
       - ENCRYPTION_KEY=${ENCRYPTION_KEY}
-      - JWT_SECRET=${JWT_SECRET}
 
 # añadir estas líneas para proxy inverso 
 networks:
@@ -116,7 +114,6 @@ PROJECTS_DIRECTORY=/ruta/a/tus/proyectos
 
 # Claves de Seguridad (GENERAR NUEVAS)
 ENCRYPTION_KEY=tu_encryption_key_generada
-JWT_SECRET=tu_jwt_secret_generado
 ```
 
 ### 4. Ajustar la Ruta de Proyectos
