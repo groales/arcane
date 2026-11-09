@@ -1,0 +1,31 @@
+services:
+  arcane:
+    image: ${ARCANE_IMAGE:-ghcr.io/getarcaneapp/manager:latest}
+    container_name: arcane
+    restart: unless-stopped
+    cgroup: host
+    ports:
+      - "${ARCANE_BIND_IP:-127.0.0.1}:${ARCANE_PORT:-3552}:3552"
+    environment:
+      APP_URL: ${APP_URL:-http://localhost:3552}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:?Define ENCRYPTION_KEY en .env}
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      PROJECTS_DIRECTORY: /opt/docker
+      DOCKER_HOST: unix:///var/run/docker.sock
+    volumes:
+      - type: bind
+        source: ./data
+        target: /app/data
+      - type: bind
+        source: ${PROJECTS_HOST_PATH:-./projects}
+        target: /opt/docker
+      - type: bind
+        source: /var/run/docker.sock
+        target: /var/run/docker.sock
+    healthcheck:
+      test: ["CMD", "./arcane", "health", "--timeout", "2s"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 15s

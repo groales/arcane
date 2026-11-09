@@ -1,0 +1,9 @@
+# Configuración y claves locales
+.env
+
+# Datos persistentes de Arcane y proyectos administrados
+/data/
+/projects/
+
+# Archivos locales de macOS
+.DS_Store
