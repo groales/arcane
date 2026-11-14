@@ -108,6 +108,45 @@ docker compose up -d --pull always
 docker compose ps
 ```
 
+## Uso detrás de un proxy
+
+`compose.override.yaml` es una configuración opcional para integrar Arcane con un proxy inverso que ya esté conectado a la red Docker externa `proxy`. Docker Compose carga automáticamente `compose.yaml` y `compose.override.yaml` cuando ejecutas los comandos desde esta carpeta. El override:
+
+- Conecta el servicio `arcane` a la red externa ya existente `proxy`; no crea esa red.
+- Elimina la publicación del puerto del archivo principal mediante `ports: !reset []`. Arcane deja de estar publicado directamente en los puertos del host.
+- Permite que el proxy alcance Arcane por el nombre de contenedor/servicio `arcane` y el puerto interno `3552`, por ejemplo como destino `http://arcane:3552`.
+
+La red `proxy` debe existir previamente y el proxy inverso debe estar conectado a ella. El archivo versionable `compose.override.example.yaml` contiene esta configuración. Para activarla, copia la plantilla a `compose.override.yaml`, que está excluido de Git porque puede contener ajustes específicos del host:
+
+```sh
+cp compose.override.example.yaml compose.override.yaml
+docker network inspect proxy
+docker compose config --quiet
+docker compose up -d --pull always
+docker compose ps
+```
+
+La plantilla `compose.override.example.yaml`:
+
+```yaml
+# Plantilla versionable para ejecutar Arcane detrás de un proxy inverso.
+# Copia este archivo a compose.override.yaml para activarla.
+services:
+  arcane:
+    # Retira el mapeo de puertos definido en compose.yaml.
+    ports: !reset []
+    networks:
+      - proxy
+
+networks:
+  # La red debe existir previamente y el proxy inverso debe estar conectado a ella.
+  proxy:
+    external: true
+    name: proxy
+```
+
+Para un despliegue manual sin Git detrás del proxy, copia ambos archivos de override junto a `compose.yaml`. Si no necesitas el proxy y quieres publicar el puerto del host directamente, no crees `compose.override.yaml`.
+
 ## Variables y persistencia
 
 Compose lee automáticamente `.env` para interpolar la configuración:

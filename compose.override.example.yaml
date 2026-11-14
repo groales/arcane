@@ -1,0 +1,14 @@
+# Plantilla versionable para ejecutar Arcane detrás de un proxy inverso.
+# Copia este archivo a compose.override.yaml para activarla.
+services:
+  arcane:
+    # Retira el mapeo de puertos definido en compose.yaml.
+    ports: !reset []
+    networks:
+      - proxy
+
+networks:
+  # La red debe existir previamente y el proxy inverso debe estar conectado a ella.
+  proxy:
+    external: true
+    name: proxy

@@ -1,6 +1,9 @@
 # Configuración y claves locales
 .env
 
+# Override local del proxy; puede incluir ajustes específicos del host
+compose.override.yaml
+
 # Datos persistentes de Arcane y proyectos administrados
 /data/
 /projects/
