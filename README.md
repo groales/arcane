@@ -110,13 +110,9 @@ docker compose ps
 
 ## Uso detrás de un proxy
 
-`compose.override.yaml` es una configuración opcional para integrar Arcane con un proxy inverso que ya esté conectado a la red Docker externa `proxy`. Docker Compose carga automáticamente `compose.yaml` y `compose.override.yaml` cuando ejecutas los comandos desde esta carpeta. El override:
+`compose.override.yaml` habilita el modo con proxy inverso. Docker Compose combina automáticamente este archivo con `compose.yaml` si ambos están en el directorio del proyecto. El override conecta Arcane a la red externa `proxy` y elimina el puerto publicado por el archivo principal con `ports: !reset []`; el proxy accederá al servicio por `http://arcane:3552`, sin publicar el puerto en el host.
 
-- Conecta el servicio `arcane` a la red externa ya existente `proxy`; no crea esa red.
-- Elimina la publicación del puerto del archivo principal mediante `ports: !reset []`. Arcane deja de estar publicado directamente en los puertos del host.
-- Permite que el proxy alcance Arcane por el nombre de contenedor/servicio `arcane` y el puerto interno `3552`, por ejemplo como destino `http://arcane:3552`.
-
-La red `proxy` debe existir previamente y el proxy inverso debe estar conectado a ella. El archivo versionable `compose.override.example.yaml` contiene esta configuración. Para activarla, copia la plantilla a `compose.override.yaml`, que está excluido de Git porque puede contener ajustes específicos del host:
+La red Docker `proxy` debe existir previamente y el contenedor del proxy inverso debe estar conectado a ella. La plantilla versionable `compose.override.example.yaml` incluye esta configuración. Actívala copiándola al nombre que Compose carga automáticamente; `compose.override.yaml` está en `.gitignore` para dejarla como configuración local:
 
 ```sh
 cp compose.override.example.yaml compose.override.yaml
@@ -126,7 +122,7 @@ docker compose up -d --pull always
 docker compose ps
 ```
 
-La plantilla `compose.override.example.yaml`:
+Contenido de referencia de `compose.override.example.yaml`:
 
 ```yaml
 # Plantilla versionable para ejecutar Arcane detrás de un proxy inverso.
@@ -145,7 +141,7 @@ networks:
     name: proxy
 ```
 
-Para un despliegue manual sin Git detrás del proxy, copia ambos archivos de override junto a `compose.yaml`. Si no necesitas el proxy y quieres publicar el puerto del host directamente, no crees `compose.override.yaml`.
+Configura la ruta de tu proxy inverso hacia `arcane:3552` (por ejemplo, `http://arcane:3552`) y asegúrate de que soporte WebSockets. Para desactivar el modo proxy, detén Arcane y elimina `compose.override.yaml`; al volver a ejecutar Compose, se aplicará de nuevo el puerto publicado de `compose.yaml`. En una instalación manual, copia `compose.yaml`, `.env.example` y `compose.override.example.yaml`; copia la plantilla override a `compose.override.yaml` solo si utilizarás un proxy.
 
 ## Variables y persistencia
 
