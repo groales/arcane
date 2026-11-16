@@ -26,7 +26,7 @@ La instalación oficial recomienda `ghcr.io/getarcaneapp/manager:latest`; es la 
 Después de alojar este repositorio en un remoto propio, clónalo y configura las variables privadas/locales:
 
 ```sh
-git clone <URL_DEL_REPOSITORIO> arcane
+git clone https://github.com/groales/arcane arcane
 cd arcane
 cp .env.example .env
 openssl rand -hex 32
